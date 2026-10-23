@@ -42,22 +42,21 @@ tgl_min, tgl_max = day_all["dteday"].min().date(), day_all["dteday"].max().date(
 rentang = st.sidebar.date_input(
     "Rentang tanggal", value=(tgl_min, tgl_max), min_value=tgl_min, max_value=tgl_max
 )
-ALL_SEASONS = "All Seasons"
-musim_pilihan = st.sidebar.selectbox("Musim", [ALL_SEASONS] + URUTAN_MUSIM, index=0)
+musim_pilihan = st.sidebar.multiselect("Musim", URUTAN_MUSIM, default=URUTAN_MUSIM)
 st.sidebar.caption("Sumber data: Capital Bikeshare, Washington D.C. (2011-2012).")
 
 if not (isinstance(rentang, (list, tuple)) and len(rentang) == 2):
     st.info("Pilih tanggal awal dan tanggal akhir pada filter di sebelah kiri.")
+    st.stop()
+if not musim_pilihan:
+    st.info("Pilih minimal satu musim pada filter di sebelah kiri.")
     st.stop()
 
 awal, akhir = pd.Timestamp(rentang[0]), pd.Timestamp(rentang[1])
 
 
 def saring(df):
-    df = df[df["dteday"].between(awal, akhir)]
-    if musim_pilihan != ALL_SEASONS:
-        df = df[df["musim"] == musim_pilihan]
-    return df
+    return df[df["dteday"].between(awal, akhir) & df["musim"].isin(musim_pilihan)]
 
 
 hour_df, day_df = saring(hour_all), saring(day_all)
